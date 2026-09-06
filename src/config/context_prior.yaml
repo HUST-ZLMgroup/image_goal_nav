@@ -1,0 +1,10 @@
+# Pretrained context-relation guidance
+habitat_baselines:
+  rl:
+    ppo:
+      goal_backbone: none
+      backbone: fast_resnet9
+      # backbone: diffusion
+      relations_size: 2
+      context_checkpoint_dir: "room_expert_ckpt/"
+  num_environments: 10

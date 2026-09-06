@@ -1,0 +1,27 @@
+# Task observation sources
+habitat:
+  task:
+    imagegoal_sensor_v2:
+      type: "TargetViewSensor"
+      channels: "rgb"
+      sampling_type: "uniform"
+      bias: [0,0,0] # set position bias for goal sensor
+      augmentation:
+        activate: False
+        hfov: [60,120]
+        height: [-0.45,0.25] # from 0.8m to 1.5m
+        pitch: [-5,5] # in degree
+    panoramic_rgb_sensor:
+      type: "SurroundViewSensor"
+      channels: "rgb"
+    goalimage_keypoint_sensor:
+      type: "CorrespondenceSensor"
+      max_matched_pts: 128
+      # max_matched_pts: 512
+      lowes_threshold: 0.5
+  simulator:
+    rgb_sensor: # to generate high-res visualization, use 512x512 rgb sensor
+      width: 128
+      height: 128
+      # width: 512
+      # height: 512

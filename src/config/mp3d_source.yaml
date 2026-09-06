@@ -1,0 +1,7 @@
+# MP3D episode source
+habitat:
+  environment:
+    type: mp3d
+  dataset:
+    type: ViewGoalNav-v1
+    data_path: data/datasets/imagenav/mp3d/v1/{split}/{split}.json.gz

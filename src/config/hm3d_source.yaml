@@ -1,0 +1,7 @@
+# HM3D episode source
+habitat:
+  environment:
+    type: hm3d
+  dataset:
+    type: ViewGoalNav-v1
+    data_path: data/datasets/imagenav/hm3d/v1/{split}/{split}.json.gz

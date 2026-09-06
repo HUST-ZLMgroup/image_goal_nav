@@ -1,0 +1,16 @@
+# Reward and termination objective
+habitat_baselines:
+  rl:
+    success_reward: 10.0
+    slack_reward: -0.01
+
+
+habitat:
+  env_task: GoalNavigationEnv
+  task:
+    reward_measure: pose_goal_distance
+    success_measure: pose_goal_success
+    measurements: [distance_to_goal, success, spl, soft_spl, pose_goal_distance, pose_goal_success, terminal_view_angle]
+    
+    sensors: [imagegoal_sensor_v2]
+    # sensors: [imagegoal_sensor_v2, panoramic_rgb_sensor]
