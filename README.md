@@ -223,17 +223,24 @@ The control path is:
 At each control cycle, NMPC solves a constrained optimal-control problem:
 
 ```math
+\left\{
 \begin{aligned}
-\underset{\mathbf{u}(\cdot)}{\min}\quad
-& \phi\!\left(\mathbf{x}(t_I)\right)
-+ \int_{t_0}^{t_I} l\!\left(\mathbf{x}(t),\mathbf{u}(t),t\right)\,dt \\
-\text{subject to}\quad
-& \mathbf{x}(t_0)=\mathbf{x}_0, \\
-& \dot{\mathbf{x}}(t)=\mathbf{f}\!\left(\mathbf{x}(t),\mathbf{u}(t),t\right), \\
-& \mathbf{g}_1\!\left(\mathbf{x}(t),\mathbf{u}(t),t\right)=\mathbf{0}, \\
-& \mathbf{g}_2\!\left(\mathbf{x}(t),t\right)=\mathbf{0}, \\
-& \mathbf{h}\!\left(\mathbf{x}(t),\mathbf{u}(t),t\right)\geq\mathbf{0}.
+\min_{u(\cdot)}\quad
+& \phi\bigl(x(t_I)\bigr)
++ \int_{t_0}^{t_I} l\bigl(x(t),u(t),t\bigr)\,dt \\
+\mathrm{s.t.}\quad
+& x(t_0)=x_0,
+&& \text{initial state} \\
+& \dot{x}(t)=f\bigl(x(t),u(t),t\bigr),
+&& \text{system flow map} \\
+& g_1\bigl(x(t),u(t),t\bigr)=0,
+&& \text{state-input equality constraints} \\
+& g_2\bigl(x(t),t\bigr)=0,
+&& \text{state-only equality constraints} \\
+& h\bigl(x(t),u(t),t\bigr)\geq 0,
+&& \text{inequality constraints}
 \end{aligned}
+\right.
 ```
 
 The state and input vectors are defined as
