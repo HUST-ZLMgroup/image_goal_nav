@@ -1,7 +1,7 @@
 
 Imitation inspired deep reinforcement learning for monocular RGB embodied indoor navigation
 
- Yi Yan1, Yiheng Su1, Jiaqi Wang1, Limao Zhang1*, Lijun Zhu2, Changyong Liu3, Jing Liu1, Zhuang Xia1, Mirosław J. Skibniewski4, Lieyun Ding1
+ Yi Yan<sup>1</sup>, Yiheng Su<sup>1</sup>, Jiaqi Wang<sup>1</sup>, Limao Zhang<sup>1,*</sup>, Lijun Zhu<sup>2</sup>, Changyong Liu<sup>3</sup>, Jing Liu<sup>1</sup>, Zhuang Xia<sup>1</sup>, Mirosław J. Skibniewski<sup>4</sup>, Lieyun Ding<sup>1</sup>
 1. National Center of Technology Innovation for Digital Construction, Huazhong University of Science and Technology; Wuhan, China.
 2. School of Artificial Intelligence and Automation, Huazhong University of Science and Technology; Wuhan, China.
 3. School of Civil Engineering, Harbin Institute of Technology; Harbin, China.
