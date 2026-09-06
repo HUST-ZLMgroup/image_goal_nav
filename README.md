@@ -222,7 +222,7 @@ The control path is:
 
 At each control cycle, NMPC solves a constrained optimal-control problem:
 
-$$
+```math
 \begin{aligned}
 \underset{\mathbf{u}(\cdot)}{\min}\quad
 & \phi\!\left(\mathbf{x}(t_I)\right)
@@ -234,11 +234,11 @@ $$
 & \mathbf{g}_2\!\left(\mathbf{x}(t),t\right)=\mathbf{0}, \\
 & \mathbf{h}\!\left(\mathbf{x}(t),\mathbf{u}(t),t\right)\geq\mathbf{0}.
 \end{aligned}
-$$
+```
 
 The state and input vectors are defined as
 
-$$
+```math
 \mathbf{x}
 =
 \begin{bmatrix}
@@ -250,7 +250,7 @@ $$
 \begin{bmatrix}
 \mathbf{f}_{c}^{T} & \mathbf{v}_{j}^{T}
 \end{bmatrix}^{T}.
-$$
+```
 
 Here, $\mathbf{h}_{com}\in\mathbb{R}^{6}$ is the normalized centroidal momentum; $\mathbf{q}_{b}$ and $\mathbf{q}_{j}$ are the floating-base and joint coordinates; $\mathbf{f}_{c}\in\mathbb{R}^{12}$ contains the four three-dimensional ground-reaction forces; and $\mathbf{v}_{j}$ contains joint velocities. The model includes friction-cone constraints, zero motion at stance feet, and a gait-dependent vertical trajectory for each swing foot. Multiple shooting converts the problem into a nonlinear program, Sequential Quadratic Programming solves the NLP, and HPIPM solves the resulting QP subproblems.
 
@@ -260,13 +260,13 @@ Here, $\mathbf{h}_{com}\in\mathbb{R}^{6}$ is the normalized centroidal momentum;
 
 WBC solves an instantaneous hierarchical QP with decision vector
 
-$$
+```math
 \mathbf{x}_{wbc}
 =
 \begin{bmatrix}
 \ddot{\mathbf{q}}^{T} & \mathbf{f}_{c}^{T} & \boldsymbol{\tau}^{T}
 \end{bmatrix}^{T},
-$$
+```
 
 where $\ddot{\mathbf{q}}$ is generalized acceleration, $\mathbf{f}_{c}$ is the contact-force vector, and $\boldsymbol{\tau}$ is the joint-torque vector. Higher-priority equality constraints define a null space for lower-priority tasks, while inequality slack variables are minimized. This preserves the task hierarchy while accounting for full nonlinear rigid-body dynamics.
 
