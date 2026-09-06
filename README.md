@@ -94,7 +94,191 @@ main.py \
 --run-type eval --model-dir results/eval_gibson \
 habitat_baselines.eval_ckpt_path_dir $checkpoint_path
 ```
+## 5. Unitree A1 Robot Platform
 
+### 5.1 Unitree A1 Manuals
 
+The following Unitree A1 documents are included in this repository for setup, operation, development, and mechanical integration.
+
+| Document | Version / pages | Main content |
+|---|---:|---|
+| [A1 Software Manual (Chinese)](docs/unitree_a1/manuals/a1_software_manual_zh.pdf) | V1.0 / 16 pages | Network setup, coordinate systems, kinematics, dynamics, SDK APIs, motor control, ROS, RViz, and Gazebo |
+| [A1 Mechanical Interface Drawing](docs/unitree_a1/manuals/a1_mechanical_interface_drawing.pdf) | 1 page | Top mounting-hole positions and mechanical dimensions |
+| [A1 Quick Start Guide (Chinese)](docs/unitree_a1/manuals/a1_quick_start_guide_zh.pdf) | V1.0 / 21 pages | Safety notices, unpacking, startup, remote control, charging, and basic operation |
+| [A1 User Manual (Chinese)](docs/unitree_a1/manuals/a1_user_manual_v1.2_zh.pdf) | V1.2 / 44 pages | Product overview, operating modes, maintenance, troubleshooting, and safety procedures |
+
+Read the Quick Start Guide and User Manual before powering or commanding the physical robot. Keep the robot clear of people and obstacles, use a support frame or safety tether during early tests, and validate every controller in simulation first.
+
+### 5.2 A1 Control Module
+
+This control workflow is adapted from [qiayuanl/legged_control](https://github.com/qiayuanl/legged_control), an NMPC-WBC, state-estimation, and sim-to-real framework built on [OCS2](https://github.com/leggedrobotics/ocs2) and [ros-control](http://wiki.ros.org/ros_control). The upstream project is no longer actively supported, so pin and test all dependencies before deployment. The copied media and adapted material retain the upstream [BSD-3-Clause license](docs/legged_control/LICENSE).
+
+#### Demonstration video
+
+The original NMPC-WBC demonstration is shown directly below. A repository copy is also available at [docs/legged_control/media/nmpc_wbc_demo.mp4](docs/legged_control/media/nmpc_wbc_demo.mp4).
+
+https://user-images.githubusercontent.com/21256355/192135828-8fa7d9bb-9b4d-41f9-907a-68d34e6809d8.mp4
+
+#### Control example
+
+![Unitree A1 control example](docs/legged_control/media/a1_control_example.gif)
+
+#### Dependencies and build
+
+Place the control stack and its dependencies in the <code>src</code> directory of a ROS catkin workspace. OCS2 is a large monorepo; only build <code>ocs2_legged_robot_ros</code>, <code>ocs2_self_collision_visualization</code>, and their dependencies.
+
+~~~bash
+cd ~/catkin_ws/src
+
+# Control stack
+git clone https://github.com/qiayuanl/legged_control.git
+
+# OCS2 and required geometry/dynamics libraries
+git clone https://github.com/leggedrobotics/ocs2.git
+git clone --recurse-submodules https://github.com/leggedrobotics/pinocchio.git
+git clone --recurse-submodules https://github.com/leggedrobotics/hpp-fcl.git
+git clone https://github.com/leggedrobotics/ocs2_robotic_assets.git
+
+sudo apt update
+sudo apt install liburdfdom-dev liboctomap-dev libassimp-dev
+
+cd ~/catkin_ws
+catkin config -DCMAKE_BUILD_TYPE=RelWithDebInfo
+catkin build ocs2_legged_robot_ros ocs2_self_collision_visualization
+
+# Main controller and A1 description
+catkin build legged_controllers legged_unitree_description
+
+# Simulation only; do not run Gazebo on the onboard computer
+catkin build legged_gazebo
+
+# Physical A1 hardware interface; not required for simulation-only use
+catkin build legged_unitree_hw
+source devel/setup.bash
+~~~
+
+The expected OCS2 legged-robot behavior is illustrated below.
+
+![OCS2 legged robot example](docs/legged_control/media/ocs2_legged_robot.gif)
+
+#### Quick start
+
+Set the robot type before starting either simulation or hardware:
+
+~~~bash
+export ROBOT_TYPE=a1
+~~~
+
+Start one of the following launch files:
+
+~~~bash
+# Gazebo simulation
+roslaunch legged_unitree_description empty_world.launch
+
+# Physical A1 hardware
+roslaunch legged_unitree_hw legged_unitree_hw.launch
+~~~
+
+Load the controller:
+
+~~~bash
+roslaunch legged_controllers load_controller.launch cheater:=false
+~~~
+
+Start the real-state controller through <code>controller_manager</code>:
+
+~~~bash
+rosservice call /controller_manager/switch_controller "start_controllers: ['controllers/legged_controller']
+stop_controllers: ['']
+strictness: 0
+start_asap: false
+timeout: 0.0"
+~~~
+
+The controller can alternatively be managed through the ROS GUI:
+
+~~~bash
+sudo apt install ros-noetic-rqt-controller-manager
+rosrun rqt_controller_manager rqt_controller_manager
+~~~
+
+Select the gait in the terminal running <code>load_controller.launch</code>. Command robot motion with <code>cmd_vel</code> or <code>move_base_simple/goal</code> and inspect state, trajectories, contacts, and forces in RViz.
+
+> **Hardware safety:** never start <code>legged_cheater_controller</code> on the physical robot. It depends on simulator ground-truth state. Gait selection and motion goals are separate commands; do not command a stance transition merely because all four feet already contact the ground.
+
+#### Control architecture
+
+![NMPC-WBC control architecture](docs/legged_control/media/system_diagram.png)
+
+The control path is:
+
+1. A desired torso velocity or position goal is converted into a target state trajectory.
+2. NMPC optimizes the predicted robot state and control input over a finite horizon.
+3. WBC converts the optimized state and contact-force references into joint torques.
+4. Feed-forward torque and low-gain joint position/velocity PD commands are sent to the motor controllers to reduce impact and improve tracking.
+5. IMU and joint measurements provide the current orientation and joint state. A linear Kalman filter estimates base position and velocity from orientation, acceleration, and foot-position measurements.
+
+#### Nonlinear model predictive control
+
+At each control cycle, NMPC solves a constrained optimal-control problem:
+
+$$
+\begin{aligned}
+\underset{\mathbf{u}(\cdot)}{\min}\quad
+& \phi\!\left(\mathbf{x}(t_I)\right)
++ \int_{t_0}^{t_I} l\!\left(\mathbf{x}(t),\mathbf{u}(t),t\right)\,dt \\
+\text{subject to}\quad
+& \mathbf{x}(t_0)=\mathbf{x}_0, \\
+& \dot{\mathbf{x}}(t)=\mathbf{f}\!\left(\mathbf{x}(t),\mathbf{u}(t),t\right), \\
+& \mathbf{g}_1\!\left(\mathbf{x}(t),\mathbf{u}(t),t\right)=\mathbf{0}, \\
+& \mathbf{g}_2\!\left(\mathbf{x}(t),t\right)=\mathbf{0}, \\
+& \mathbf{h}\!\left(\mathbf{x}(t),\mathbf{u}(t),t\right)\geq\mathbf{0}.
+\end{aligned}
+$$
+
+The state and input vectors are defined as
+
+$$
+\mathbf{x}
+=
+\begin{bmatrix}
+\mathbf{h}_{com}^{T} & \mathbf{q}_{b}^{T} & \mathbf{q}_{j}^{T}
+\end{bmatrix}^{T},
+\qquad
+\mathbf{u}
+=
+\begin{bmatrix}
+\mathbf{f}_{c}^{T} & \mathbf{v}_{j}^{T}
+\end{bmatrix}^{T}.
+$$
+
+Here, $\mathbf{h}_{com}\in\mathbb{R}^{6}$ is the normalized centroidal momentum; $\mathbf{q}_{b}$ and $\mathbf{q}_{j}$ are the floating-base and joint coordinates; $\mathbf{f}_{c}\in\mathbb{R}^{12}$ contains the four three-dimensional ground-reaction forces; and $\mathbf{v}_{j}$ contains joint velocities. The model includes friction-cone constraints, zero motion at stance feet, and a gait-dependent vertical trajectory for each swing foot. Multiple shooting converts the problem into a nonlinear program, Sequential Quadratic Programming solves the NLP, and HPIPM solves the resulting QP subproblems.
+
+#### Whole-body control
+
+![Whole-body controller task hierarchy](docs/legged_control/media/wbc_tasks.png)
+
+WBC solves an instantaneous hierarchical QP with decision vector
+
+$$
+\mathbf{x}_{wbc}
+=
+\begin{bmatrix}
+\ddot{\mathbf{q}}^{T} & \mathbf{f}_{c}^{T} & \boldsymbol{\tau}^{T}
+\end{bmatrix}^{T},
+$$
+
+where $\ddot{\mathbf{q}}$ is generalized acceleration, $\mathbf{f}_{c}$ is the contact-force vector, and $\boldsymbol{\tau}$ is the joint-torque vector. Higher-priority equality constraints define a null space for lower-priority tasks, while inequality slack variables are minimized. This preserves the task hierarchy while accounting for full nonlinear rigid-body dynamics.
+
+#### Physical A1 integration
+
+For a physical A1, use an external computer such as an Intel NUC for NMPC/WBC computation. The hardware adapter should inherit <code>LeggedHW</code> and implement the <code>read()</code> and <code>write()</code> interfaces following the upstream <code>UnitreeHW</code> implementation. Robot URDF joint and link names must match the names expected by <code>legged_unitree_description</code>.
+
+Before enabling motor output:
+
+1. Verify the URDF, joint directions, limits, and zero positions against the manuals in Section 5.1.
+2. Confirm IMU orientation, joint-state order, foot-contact signals, and network interfaces.
+3. Validate standing, gait switching, velocity commands, emergency stop, and communication-loss handling in simulation.
+4. Use a safety frame or tether for the first hardware tests and keep an operator ready to stop the robot.
 
 ## Cite This Paper! 
