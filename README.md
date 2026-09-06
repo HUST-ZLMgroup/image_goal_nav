@@ -10,35 +10,47 @@ Imitation inspired deep reinforcement learning for monocular RGB embodied indoor
 
 
 
-## 1. Install 
-### 1.1 Install habitat-lab 
+## 1. Installation
+
+### 1.1 Create the environment and install Habitat-Sim
+
 ```bash
 # clone our repo
 git clone https://github.com/HUST-ZLMgroup/image_goal_nav
 cd image_goal_nav
 
-# clone habitat-lab code
-git submodule init
-git submodule update
+# create and activate the conda environment
+conda create -n image_goal_nav python=3.8 -y
+conda activate image_goal_nav
 
-# create conda env
-conda create -n image_goal_nav 
-
-# install habitat-sim
+# install Habitat-Sim 0.2.2 with Bullet for a headless server or multi-GPU machine
 conda install habitat-sim=0.2.2 withbullet headless -c conda-forge -c aihabitat
 
-# install pytorch (>=1.10)
-pip install torch
+# on a workstation with a display, use this command instead:
+# conda install habitat-sim=0.2.2 withbullet -c conda-forge -c aihabitat
 
-# install habitat-lab and habitat-baselines
-cd habitat-lab
-git checkout 1f7cfbdd3debc825f1f2fd4b9e1a8d6d4bc9bfc7
-pip install -e habitat-lab 
-pip install -e habitat-baselines
+# verify the Habitat-Sim installation
+python -c "import habitat_sim; print('Habitat-Sim 0.2.2 is available')"
 ```
-### 1.2 Install other requirements 
+
+### 1.2 Install PyTorch and Habitat-Lab
+
+Habitat-Lab 0.2.2 and Habitat-Baselines are included in this repository.
+
 ```bash
+# install PyTorch 1.10 or later
+pip install "torch>=1.10"
+
+# install the bundled Habitat-Lab and Habitat-Baselines packages
+cd habitat-lab
+pip install -e habitat-lab
+pip install -e habitat-baselines
 cd ..
+```
+
+### 1.3 Install other requirements
+
+```bash
 pip install -r requirements.txt
 ```
 
