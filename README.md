@@ -111,7 +111,11 @@ Read the Quick Start Guide and User Manual before powering or commanding the phy
 
 ### 5.2 A1 Control Module
 
-This control workflow is adapted from [qiayuanl/legged_control](https://github.com/qiayuanl/legged_control), an NMPC-WBC, state-estimation, and sim-to-real framework built on [OCS2](https://github.com/leggedrobotics/ocs2) and [ros-control](http://wiki.ros.org/ros_control). The upstream project is no longer actively supported, so pin and test all dependencies before deployment. The copied media and adapted material retain the upstream [BSD-3-Clause license](docs/legged_control/LICENSE).
+This control workflow is adapted from [qiayuanl/legged_control](https://github.com/qiayuanl/legged_control), an NMPC-WBC, state-estimation, and sim-to-real framework built on [OCS2](https://github.com/leggedrobotics/ocs2) and [ros-control](http://wiki.ros.org/ros_control). The upstream project is no longer actively supported, so pin and test all dependencies before deployment.
+
+#### Bundled source code
+
+The complete upstream source snapshot at commit [`a7f381c`](https://github.com/qiayuanl/legged_control/commit/a7f381c0367e98e31c01336e678eef47e304d40d) is included in [`control/legged_control`](control/legged_control). It contains the common utilities, NMPC formulation, ROS controllers, state estimation, Unitree A1/Aliengo/Go1 examples, Gazebo integration, hardware interfaces, WBC, and qpOASES catkin package. The source retains its original [BSD-3-Clause license](control/legged_control/LICENSE) and copyright notice; snapshot provenance is recorded in [`control/README.md`](control/README.md).
 
 #### Demonstration video
 
@@ -125,13 +129,13 @@ https://user-images.githubusercontent.com/21256355/192135828-8fa7d9bb-9b4d-41f9-
 
 #### Dependencies and build
 
-Place the control stack and its dependencies in the <code>src</code> directory of a ROS catkin workspace. OCS2 is a large monorepo; only build <code>ocs2_legged_robot_ros</code>, <code>ocs2_self_collision_visualization</code>, and their dependencies.
+Place the bundled control stack and its dependencies in the <code>src</code> directory of a ROS catkin workspace. OCS2 is a large monorepo; only build <code>ocs2_legged_robot_ros</code>, <code>ocs2_self_collision_visualization</code>, and their dependencies. Run the first three commands below from the root of this repository.
 
 ~~~bash
+# Copy the control source bundled with this repository
+mkdir -p ~/catkin_ws/src
+cp -a control/legged_control ~/catkin_ws/src/
 cd ~/catkin_ws/src
-
-# Control stack
-git clone https://github.com/qiayuanl/legged_control.git
 
 # OCS2 and required geometry/dynamics libraries
 git clone https://github.com/leggedrobotics/ocs2.git
