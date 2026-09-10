@@ -69,6 +69,23 @@ Please read the [official guidance](https://github.com/facebookresearch/habitat-
 ## 3.  Training 
 
 ### 3.1 Train the Image-Goal Navigation Agent
+
+Both the training and evaluation commands use `src/config/context_prior.yaml`,
+which adds a two-dimensional auxiliary context-relation feature (`relations_size: 2`).
+Before running either command, place the pretrained auxiliary weights in this
+directory, relative to the repository root:
+
+```text
+context_prior_ckpt/
+├── style_encoder.pkl
+└── relation_network.pkl
+```
+
+For an existing installation, move the auxiliary weights into `context_prior_ckpt/`
+or append `habitat_baselines.rl.ppo.context_checkpoint_dir /path/to/checkpoints`
+to the command to use their current directory. A trailing slash is optional.
+The auxiliary weights are separate from the navigation checkpoint used for evaluation.
+
 ```bash
 python -m torch.distributed.launch \
 --nproc_per_node=4 --master_port=15344 --nnodes=1 \
@@ -77,6 +94,15 @@ main.py \
 --exp-config exp_config/gibson_experiment.yaml,agent,task_objective,gibson_source,task_observations,context_prior \
 --run-type train --model-dir results/train
 ```
+
+The optional `ContextPairEncoder` in `src/feature_fusion.py` accepts the same
+`context_checkpoint_dir` argument and defaults to `context_prior_ckpt/`; its
+weight filenames remain `feature_encoder.pkl` and `relation_network.pkl`.
+For older optional `ConditionalFusionEncoder` checkpoints, rename the state-dict
+key component `room_encoder` to `context_encoder` before loading. The default
+`fast_resnet9` navigation checkpoint keys and feature dimensions are unchanged.
+The optional diffusion feature extractor accepts a local model directory or
+model ID through `sd_id`, defaulting to `stabilityai/stable-diffusion-2-1`.
 
 ## 4. Run Evaluation! 
 ### 4.1 Download the Trained Model to Reproduce the Results 

@@ -6,5 +6,5 @@ habitat_baselines:
       backbone: fast_resnet9
       # backbone: diffusion
       relations_size: 2
-      context_checkpoint_dir: "room_expert_ckpt/"
+      context_checkpoint_dir: "context_prior_ckpt/"
   num_environments: 10

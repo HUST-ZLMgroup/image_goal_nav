@@ -78,7 +78,7 @@ class GoalConditionedPolicy(NetPolicy):
         visual_obs_inputs=['*'],
         visual_encoder_init=None,
         relations_size=2,
-        context_checkpoint_dir="*",
+        context_checkpoint_dir="context_prior_ckpt/",
         **kwargs
     ):
         super().__init__(
@@ -196,7 +196,7 @@ class RecurrentGoalNetwork(Net):
         visual_obs_inputs=['*'],
         visual_encoder_init=None,
         relations_size=2,
-        context_checkpoint_dir="*",
+        context_checkpoint_dir="context_prior_ckpt/",
         rgb_color_jitter=0.,
         tie_inputs_and_goal_param=False,
         goal_embedding_size=128,

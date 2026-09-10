@@ -80,14 +80,20 @@ class ContextMapEncoder(nn.Module):
         return x
 
 class ContextPairEncoder(nn.Module):
-    def __init__(self):
+    def __init__(self, context_checkpoint_dir="context_prior_ckpt/"):
         super().__init__()
         self.feature_encoder = ContextStyleEncoder()
-        load_matching_weights('/data/lpn/room-expert/checkpoints/feature_encoder.pkl', self.feature_encoder, strip='module.')
-        # self.feature_encoder.load_state_dict(torch.load('/data/lpn/room-expert/checkpoints/feature_encoder.pkl',))
+        load_matching_weights(
+            os.path.join(context_checkpoint_dir, 'feature_encoder.pkl'),
+            self.feature_encoder,
+            strip='module.',
+        )
         self.relation_network = PairRelationClassifier()
-        load_matching_weights('/data/lpn/room-expert/checkpoints/relation_network.pkl', self.relation_network, strip='module.')
-        # self.relation_network.load_state_dict(torch.load('/data/lpn/room-expert/checkpoints/relation_network.pkl'))
+        load_matching_weights(
+            os.path.join(context_checkpoint_dir, 'relation_network.pkl'),
+            self.relation_network,
+            strip='module.',
+        )
     def forward(self,x_o, x_g):
         with torch.no_grad():
             feature1 = self.feature_encoder(x_o)
@@ -126,7 +132,7 @@ class ConditionalFusionEncoder(nn.Module):
         super().__init__()
         self.stem_o = ModulatedBackbone(reduction, film_layers, *args, **kwargs)
         self.stem_g = ConditioningBackbone(*args, **kwargs)
-        self.room_encoder = ContextMapEncoder()
+        self.context_encoder = ContextMapEncoder()
         self.conv = nn.Conv2d(in_channels=512, out_channels=256, kernel_size=1, stride=1, padding=0)
         # Pairwise context conditioning can be substituted here if required.
         self.film_layers = film_layers
@@ -138,10 +144,10 @@ class ConditionalFusionEncoder(nn.Module):
         b,c,h,w = x.shape
         x_o = x[:,:3,...]
         x_g = x[:,3:,...]
-        r_o = self.room_encoder(x_o)
-        r_g = self.room_encoder(x_g)
+        r_o = self.context_encoder(x_o)
+        r_g = self.context_encoder(x_g)
         r = torch.cat((r_o,r_g),dim=1)
-        # r = self.room_encoder(x_o,x_g)
+        # r = self.context_encoder(x_o,x_g)
         x_g, x_cond = self.stem_g(x_g)
         x_o = self.stem_o(x_o, x_cond)
         x_o = self.conv(torch.cat((x_o,r),dim=1))

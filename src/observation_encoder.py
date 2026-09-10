@@ -1,5 +1,6 @@
 """Visual encoders used by the recurrent navigation policy."""
 
+import os
 import torch
 from torch import nn as nn
 from torchvision.transforms import ColorJitter
@@ -50,7 +51,7 @@ class DualViewEncoder(nn.Module):
         visual_encoder_embedding_size=512,
         visual_obs_inputs=['*'],
         visual_encoder_init=None,
-        context_checkpoint_dir='*',
+        context_checkpoint_dir='context_prior_ckpt/',
         rgb_color_jitter=0.,
         tied_params=None,
         cam_visual=False,
@@ -187,13 +188,13 @@ class DualViewEncoder(nn.Module):
                 self.v_output_shape = v_output_shape
                 self.feature_encoder = ContextStyleEncoder()
                 load_matching_weights(
-                    context_checkpoint_dir + 'style_encoder.pkl',
+                    os.path.join(context_checkpoint_dir, 'style_encoder.pkl'),
                     self.feature_encoder,
                     strip='module.',
                 )
                 self.relation_network = PairRelationClassifier()
                 load_matching_weights(
-                    context_checkpoint_dir + 'relation_network.pkl',
+                    os.path.join(context_checkpoint_dir, 'relation_network.pkl'),
                     self.relation_network,
                     strip='module.',
                 )

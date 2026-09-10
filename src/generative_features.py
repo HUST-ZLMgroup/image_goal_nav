@@ -191,7 +191,6 @@ class SingleStepFeaturePipeline(StableDiffusionPipeline):
 
 class DiffusionFeatureExtractor:
     def __init__(self, sd_id='stabilityai/stable-diffusion-2-1', null_prompt=''):
-        sd_id = '/data/lpn/room-expert/stable-diffusion-2-1/stable-diffusion-v2-1'
         unet = FeatureUNet.from_pretrained(sd_id, subfolder="unet")
         onestep_pipe = SingleStepFeaturePipeline.from_pretrained(sd_id, unet=unet, safety_checker=None)
         onestep_pipe.vae.decoder = None
